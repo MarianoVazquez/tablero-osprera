@@ -1,0 +1,1088 @@
+<!DOCTYPE html><html lang="es"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tablero de Gestión de Convenios — OSPRERA</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&amp;family=DM+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+:root {
+  --rojo: #dc2626; --rojo-bg: #fef2f2; --rojo-tx: #991b1b; --rojo-dot: #ef4444;
+  --amarillo: #d97706; --amarillo-bg: #fffbeb; --amarillo-tx: #92400e; --amarillo-dot: #f59e0b;
+  --verde: #16a34a; --verde-bg: #f0fdf4; --verde-tx: #14532d; --verde-dot: #22c55e;
+  --azul: #1e3a5f; --azul-claro: #3b6fa0; --azul-bg: #eff6ff; --azul-tx: #1e40af;
+  --gris-100: #f8fafc; --gris-200: #f1f5f9; --gris-300: #e2e8f0; --gris-400: #cbd5e1;
+  --gris-500: #94a3b8; --gris-600: #64748b; --gris-700: #475569; --gris-900: #0f172a;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.1);
+  --radius: 8px;
+  --font: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); background: var(--gris-200); color: var(--gris-900); min-height:100vh; font-size:13px; }
+
+/* ── STRIPE ── */
+.stripe { height:4px; background:linear-gradient(90deg, var(--azul) 0%, var(--azul) 35%, var(--rojo) 35%, var(--rojo) 55%, var(--amarillo) 55%, var(--amarillo) 75%, var(--verde) 75%); }
+
+/* ── NAV ── */
+.topnav { background:white; border-bottom:1px solid var(--gris-300); padding:0 24px; height:56px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:300; box-shadow:var(--shadow); }
+.nav-brand { display:flex; align-items:center; gap:12px; }
+.nav-logo { width:34px; height:34px; border-radius:8px; background:var(--azul); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.nav-title { font-size:14px; font-weight:700; color:var(--azul); letter-spacing:-.3px; }
+.nav-sub { font-size:10.5px; color:var(--gris-500); font-family:var(--mono); margin-top:1px; }
+.nav-actions { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+.btn { padding:6px 13px; border-radius:var(--radius); border:1px solid var(--gris-400); background:white; color:var(--gris-700); font-size:11.5px; font-weight:500; cursor:pointer; transition:all .15s; white-space:nowrap; font-family:var(--font); display:inline-flex; align-items:center; gap:5px; }
+.btn:hover { background:var(--gris-100); box-shadow:var(--shadow-sm); }
+.btn-save { background:var(--azul); color:white; border-color:var(--azul); }
+.btn-save:hover { background:#152e4d; }
+.btn-pdf { background:#7c3aed; color:white; border-color:#7c3aed; }
+.btn-pdf:hover { filter:brightness(.9); }
+.btn-add { background:var(--verde); color:white; border-color:var(--verde); }
+.btn-add:hover { filter:brightness(.9); }
+
+/* ── PAGE ── */
+.page { max-width:100%; margin:0 auto; padding:14px 16px 48px; }
+
+/* ── KPI ── */
+.kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
+.kpi-card { background:white; border-radius:var(--radius); padding:16px 18px 14px; box-shadow:var(--shadow); border-left:4px solid transparent; transition:transform .12s, box-shadow .12s; cursor:pointer; }
+.kpi-card:hover { transform:translateY(-1px); box-shadow:var(--shadow-md); }
+.kpi-card.active { box-shadow:0 0 0 2px var(--azul); }
+.kpi-card-total { border-left-color:var(--azul); }
+.kpi-card-rojo { border-left-color:var(--rojo); }
+.kpi-card-amarillo { border-left-color:var(--amarillo-dot); }
+.kpi-card-verde { border-left-color:var(--verde); }
+.kpi-lbl { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.7px; color:var(--gris-500); margin-bottom:6px; }
+.kpi-num { font-size:36px; font-weight:700; line-height:1; letter-spacing:-1.5px; color:var(--gris-900); }
+.kpi-sub { font-size:10.5px; color:var(--gris-500); margin-top:4px; }
+
+/* ── PANEL FILTROS ── */
+.filter-panel { background:white; border-radius:var(--radius); padding:12px 16px; box-shadow:var(--shadow); margin-bottom:14px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.filter-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--gris-500); white-space:nowrap; }
+.filter-sel { padding:6px 10px; border:1px solid var(--gris-400); border-radius:6px; font-size:12px; color:var(--gris-700); background:white; cursor:pointer; font-family:var(--font); min-width:160px; }
+.filter-sel:focus { outline:none; border-color:var(--azul); box-shadow:0 0 0 2px rgba(30,58,95,.15); }
+.filter-input { padding:6px 10px; border:1px solid var(--gris-400); border-radius:6px; font-size:12px; color:var(--gris-700); background:white; width:200px; font-family:var(--font); }
+.filter-input:focus { outline:none; border-color:var(--azul); box-shadow:0 0 0 2px rgba(30,58,95,.15); }
+.filter-divider { width:1px; height:24px; background:var(--gris-300); }
+.filter-count { font-size:11px; color:var(--gris-500); font-family:var(--mono); margin-left:auto; }
+
+/* ── TABLE CARD ── */
+.table-card { background:white; border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; }
+.table-header { padding:14px 18px 12px; border-bottom:1px solid var(--gris-200); display:flex; justify-content:space-between; align-items:center; }
+.table-title { font-size:13px; font-weight:700; color:var(--gris-900); }
+.table-sub { font-size:11px; color:var(--gris-500); margin-top:2px; }
+.table-scroll { overflow-x:auto; }
+
+table { width:100%; border-collapse:collapse; table-layout:fixed; }
+th { padding:7px 6px; white-space:nowrap; text-align:left; font-size:9px; font-weight:700; color:var(--gris-500); text-transform:uppercase; letter-spacing:.6px; border-bottom:2px solid var(--gris-200); background:var(--gris-100); white-space:nowrap; position:sticky; top:0; z-index:10; }
+td { padding:8px 6px; border-bottom:1px solid var(--gris-100); vertical-align:top; line-height:1.5; transition:background .1s; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:#fafbfe; }
+
+/* Column widths — 8 columnas (provincia como grupo) */
+th:nth-child(1), td:nth-child(1) { width:9%; }   /* Estado */
+th:nth-child(2), td:nth-child(2) { width:12%; }  /* Efector */
+th:nth-child(3), td:nth-child(3) { width:10%; }  /* Tipo Prestación */
+th:nth-child(4), td:nth-child(4) { width:8%; }   /* Localidad */
+th:nth-child(5), td:nth-child(5) { width:9%; }   /* Fecha Envío */
+th:nth-child(6), td:nth-child(6) { width:12%; white-space:nowrap; } /* Nomenclador */
+th:nth-child(7), td:nth-child(7) { width:9%; }   /* Documentación */
+th:nth-child(8), td:nth-child(8) { width:auto; } /* Observaciones */
+
+/* ── Fila agrupadora de provincia ── */
+.tr-prov td {
+  background: var(--azul);
+  color: white;
+  padding: 8px 12px;
+  border-bottom: none;
+  border-top: 8px solid var(--gris-200);
+}
+.tr-prov:first-of-type td { border-top: none; }
+.tr-prov:hover td { background: var(--azul) !important; }
+.prov-header { display:flex; align-items:center; gap:0; }
+.prov-nombre { font-size:13px; font-weight:700; letter-spacing:-.1px; }
+.prov-contadores { display:inline-flex; align-items:center; gap:5px; margin-left:14px; }
+.prov-cnt { display:inline-flex; align-items:center; gap:3px; padding:2px 9px; border-radius:100px; font-size:10px; font-weight:700; }
+.prov-cnt-R { background:var(--rojo-bg); color:var(--rojo-tx); }
+.prov-cnt-A { background:var(--amarillo-bg); color:var(--amarillo-tx); }
+.prov-cnt-V { background:var(--verde-bg); color:var(--verde-tx); }
+.prov-total { font-size:10.5px; color:rgba(255,255,255,.55); margin-left:10px; font-family:var(--mono); }
+.prov-add { margin-left:auto; padding:3px 11px; border-radius:5px; font-size:10px; font-weight:600; cursor:pointer; background:rgba(255,255,255,.12); color:rgba(255,255,255,.9); border:1px solid rgba(255,255,255,.3); font-family:var(--font); transition:background .12s; }
+.prov-add:hover { background:rgba(255,255,255,.25); }
+/* ── Fila NACIONALES — destacada ── */
+.tr-prov-nacional td {
+  background: linear-gradient(90deg, #1a3a5f 0%, #2d5a8e 100%);
+  border-top: 10px solid var(--gris-200) !important;
+}
+.tr-prov-nacional .prov-nombre {
+  font-size:14px;
+  letter-spacing:.5px;
+  text-transform: uppercase;
+}
+.tr-prov-nacional .prov-nombre::before {
+  content: '⭐ ';
+}
+
+/* ── BADGES SEMÁFORO ── */
+.badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:5px; font-size:10.5px; font-weight:700; white-space:nowrap; cursor:pointer; transition:filter .12s, transform .1s; user-select:none; border:none; font-family:var(--font); }
+.badge:hover { filter:brightness(.93); transform:translateY(-1px); }
+.badge::before { content:''; width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.badge-R { background:var(--rojo-bg); color:var(--rojo-tx); } .badge-R::before { background:var(--rojo-dot); }
+.badge-A { background:var(--amarillo-bg); color:var(--amarillo-tx); } .badge-A::before { background:var(--amarillo-dot); }
+.badge-V { background:var(--verde-bg); color:var(--verde-tx); } .badge-V::before { background:var(--verde-dot); }
+
+/* ── DROPDOWN ── */
+.estado-dropdown { position:absolute; top:calc(100% + 4px); left:0; z-index:400; background:white; border:1px solid var(--gris-300); border-radius:10px; box-shadow:var(--shadow-md); padding:5px; min-width:180px; animation:dropIn .12s ease; }
+@keyframes dropIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+.edd-item { display:flex; align-items:center; gap:9px; padding:8px 11px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:500; transition:background .1s; }
+.edd-item:hover { background:var(--gris-100); }
+.edd-item.current { background:var(--azul-bg); }
+.edd-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.edd-desc { font-size:10px; color:var(--gris-500); display:block; }
+td.td-estado { position:relative; }
+
+/* ── EDITABLE CELLS ── */
+.editable { display:block; border-radius:4px; padding:2px 4px; margin:-2px -4px; cursor:text; transition:background .12s; min-height:16px; word-break:break-word; font-size:12px; }
+.editable:hover { background:#eff6ff; outline:1px dashed #93c5fd; }
+.editable[contenteditable="true"] { background:#fffce8; outline:2px solid #f59e0b; white-space:pre-wrap; cursor:text; }
+.edit-tip { font-size:8px; color:var(--azul-claro); opacity:0; transition:opacity .2s; margin-left:3px; }
+td:hover .edit-tip { opacity:1; }
+
+/* ── CAMPOS ESPECIALES ── */
+.cell-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--gris-500); margin-bottom:2px; }
+.date-tag { display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-family:var(--mono); color:var(--gris-600); background:var(--gris-200); padding:2px 7px; border-radius:4px; white-space:nowrap; }
+.date-tag.vence-prox { background:#fef3c7; color:#92400e; }
+.date-tag.vencido { background:#fee2e2; color:#991b1b; }
+
+/* Nomenclador status pills */
+.pill { display:inline-flex; align-items:center; gap:3px; padding:3px 8px; border-radius:100px; font-size:10px; font-weight:600; white-space:nowrap; }
+.pill-ok { background:#dcfce7; color:#14532d; }
+.pill-pend { background:#fef9c3; color:#713f12; }
+.pill-no { background:#fee2e2; color:#991b1b; }
+
+/* Anexos checkboxes visual */
+.anexos-wrap { display:flex; flex-direction:column; gap:4px; }
+.anexo-item { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--gris-600); }
+.anexo-cb { width:13px; height:13px; border:1.5px solid var(--gris-400); border-radius:3px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer; transition:all .1s; }
+.anexo-cb.checked { background:var(--verde); border-color:var(--verde); }
+.anexo-cb.checked::after { content:'✓'; font-size:8px; color:white; font-weight:700; }
+
+/* ── FECHA ── */
+.fecha-editable { border-bottom:1px dashed var(--gris-400); cursor:text; outline:none; padding:1px 4px; border-radius:3px; transition:background .15s; font-family:var(--mono); font-size:10.5px; color:var(--gris-500); display:inline-block; }
+.fecha-editable:hover { background:#eff6ff; }
+.fecha-editable:focus { background:#fffce8; border-color:var(--azul); }
+
+/* ── MODAL AGREGAR ── */
+.modal-overlay { position:fixed; inset:0; background:rgba(15,23,42,.6); z-index:600; display:none; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal { background:white; border-radius:14px; width:780px; max-width:95vw; max-height:90vh; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 24px 60px rgba(0,0,0,.25); }
+.modal-head { padding:18px 22px; border-bottom:1px solid var(--gris-200); display:flex; align-items:center; justify-content:space-between; }
+.modal-head-title { font-size:15px; font-weight:700; color:var(--gris-900); }
+.modal-head-sub { font-size:11px; color:var(--gris-500); margin-top:2px; }
+.modal-close { background:none; border:none; cursor:pointer; font-size:22px; color:var(--gris-500); line-height:1; padding:4px; transition:color .12s; }
+.modal-close:hover { color:var(--gris-900); }
+.modal-body { overflow-y:auto; padding:20px 22px; flex:1; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.form-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+.form-full { grid-column:1/-1; }
+.form-group { display:flex; flex-direction:column; gap:5px; }
+.form-label { font-size:10.5px; font-weight:700; color:var(--gris-600); text-transform:uppercase; letter-spacing:.4px; }
+.form-label span { color:var(--rojo); }
+.form-input, .form-select, .form-textarea { padding:8px 11px; border:1px solid var(--gris-300); border-radius:6px; font-size:12.5px; color:var(--gris-900); font-family:var(--font); transition:border-color .12s, box-shadow .12s; background:white; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { outline:none; border-color:var(--azul); box-shadow:0 0 0 3px rgba(30,58,95,.1); }
+.form-textarea { resize:vertical; min-height:70px; }
+.modal-footer { padding:14px 22px; border-top:1px solid var(--gris-200); display:flex; justify-content:flex-end; gap:8px; }
+.semaforo-selector { display:flex; gap:8px; }
+.sem-opt { padding:7px 14px; border-radius:6px; font-size:11.5px; font-weight:600; cursor:pointer; border:2px solid transparent; transition:all .12s; }
+.sem-opt-R { background:var(--rojo-bg); color:var(--rojo-tx); } .sem-opt-R.sel { border-color:var(--rojo); }
+.sem-opt-A { background:var(--amarillo-bg); color:var(--amarillo-tx); } .sem-opt-A.sel { border-color:var(--amarillo-dot); }
+.sem-opt-V { background:var(--verde-bg); color:var(--verde-tx); } .sem-opt-V.sel { border-color:var(--verde); }
+
+/* ── MODAL HISTORIAL ── */
+.modal-hist { width:600px; }
+.hist-entry { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--gris-100); }
+.hist-entry:last-child { border-bottom:none; }
+.hist-time { font-size:10px; font-family:var(--mono); color:var(--gris-500); white-space:nowrap; padding-top:2px; min-width:80px; }
+.hist-prov { font-size:12px; font-weight:600; color:var(--gris-900); margin-bottom:2px; }
+.hist-change { font-size:11px; color:var(--gris-500); display:flex; align-items:center; gap:6px; }
+.hist-badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:3px; }
+.hist-empty { text-align:center; padding:36px; color:var(--gris-500); font-size:13px; }
+
+/* ── TOAST ── */
+.toast { position:fixed; bottom:22px; right:22px; background:var(--gris-900); color:white; padding:10px 17px; border-radius:9px; font-size:12px; font-weight:500; box-shadow:var(--shadow-md); z-index:9999; transform:translateY(70px); opacity:0; transition:all .25s; }
+.toast.show { transform:translateY(0); opacity:1; }
+
+/* ── SUGGEST TIP ── */
+.suggest-tip { font-size:10px; color:var(--azul-claro); font-style:italic; padding:4px 0 2px; }
+
+/* ── PRINT ── */
+.print-footer { display:none; }
+@media print {
+  @page { size:A3 landscape; margin:6mm 8mm; }
+  *, *::before, *::after { -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
+  body { background:white!important; }
+  .stripe, .topnav, .filter-panel, .toast, .modal-overlay { display:none!important; }
+  .page { padding:6px 10px; }
+  .kpi-row { gap:5px; margin-bottom:8px; }
+  .kpi-card { padding:8px 10px; box-shadow:none!important; border:1px solid var(--gris-300)!important; }
+  .kpi-num { font-size:24px; }
+  .table-card { box-shadow:none; border:1px solid var(--gris-300); }
+  table { font-size:7.5px!important; min-width:unset; }
+  th { font-size:7px!important; padding:3px 6px!important; }
+  td { font-size:7.5px!important; padding:3px 6px!important; line-height:1.3!important; }
+  .badge { font-size:7px!important; padding:2px 5px!important; }
+  .print-footer { display:block!important; text-align:right; font-size:7px; color:var(--gris-500); margin-top:6px; border-top:1px solid var(--gris-300); padding-top:4px; }
+}
+</style>
+</head>
+<body>
+
+
+<!-- Overlay de carga -->
+<div id="loading-overlay" style="display:flex;position:fixed;inset:0;background:rgba(15,23,42,.7);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:16px;">
+  <div style="width:48px;height:48px;border:4px solid rgba(255,255,255,.2);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;"></div>
+  <div id="loading-msg" style="color:white;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;">Cargando datos desde la nube...</div>
+  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+</div>
+<div class="stripe"></div>
+
+<!-- NAV -->
+<div class="topnav">
+  <div class="nav-brand">
+    <div class="nav-logo">📋</div>
+    <div>
+      <div class="nav-title">Tablero de Gestión de Convenios — OSPRERA</div>
+      <div class="nav-sub">
+        Actualizado:&nbsp;
+        <span id="fecha" class="fecha-editable" contenteditable="true" title="Clic para editar la fecha" onblur="guardarFecha(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">21 de Abril de 2026 - 18 hs</span>
+        &nbsp;·&nbsp;Uso interno&nbsp;·&nbsp;Responsable: Mariano
+      </div>
+    </div>
+  </div>
+  <div class="nav-actions">
+    <button class="btn btn-add" onclick="abrirModalAgregar()">＋ Agregar efector</button>
+    <button class="btn" onclick="abrirHistorial()">📋 Historial</button>
+    <button class="btn" onclick="exportarCSV()">📥 CSV</button>
+    <button class="btn btn-pdf" onclick="imprimirPDF()">🖨️ Imprimir PDF</button>
+    <button class="btn" onclick="recargarDatos()" title="Ver cambios de otros editores">🔄 Recargar</button><button class="btn btn-save" onclick="guardarHTML()">☁️ Guardar en la nube</button>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- KPIs -->
+  <div class="kpi-row" id="kpi-row">
+    <div class="kpi-card kpi-card-total active" onclick="filtrarEstado('')" id="kpi-total">
+      <div class="kpi-lbl">Total efectores</div>
+      <div class="kpi-num" id="kn-total">56</div>
+      <div class="kpi-sub">Registrados en el tablero</div>
+    </div>
+    <div class="kpi-card kpi-card-rojo" onclick="filtrarEstado('R')" id="kpi-R">
+      <div class="kpi-lbl">🔴 Para completar</div>
+      <div class="kpi-num" id="kn-R" style="color:var(--rojo)">6</div>
+      <div class="kpi-sub">Requieren acción urgente</div>
+    </div>
+    <div class="kpi-card kpi-card-amarillo" onclick="filtrarEstado('A')" id="kpi-A">
+      <div class="kpi-lbl">🟡 En proceso</div>
+      <div class="kpi-num" id="kn-A" style="color:var(--amarillo)">35</div>
+      <div class="kpi-sub">Gestión en curso</div>
+    </div>
+    <div class="kpi-card kpi-card-verde" onclick="filtrarEstado('V')" id="kpi-V">
+      <div class="kpi-lbl">🟢 Completos</div>
+      <div class="kpi-num" id="kn-V" style="color:var(--verde)">15</div>
+      <div class="kpi-sub">Todos los requisitos cumplidos</div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filter-panel">
+    <span class="filter-label">Filtros:</span>
+    <select class="filter-sel" id="filtro-estado" onchange="aplicarFiltros()">
+      <option value="">Todos los estados</option>
+      <option value="R">🔴 Para completar</option>
+      <option value="A">🟡 En proceso</option>
+      <option value="V">🟢 Completo</option>
+    </select>
+    <select class="filter-sel" id="filtro-provincia" onchange="aplicarFiltros()">
+      <option value="">Todas las provincias</option>
+      <option value="NACIONALES">⭐ NACIONALES</option>
+    <option value="Buenos Aires (Provincia)">Buenos Aires (Provincia)</option><option value="Catamarca">Catamarca</option><option value="Chaco">Chaco</option><option value="Chubut (Patagonia)">Chubut (Patagonia)</option><option value="Ciudad Autónoma de Buenos Aires (CABA)">Ciudad Autónoma de Buenos Aires (CABA)</option><option value="Córdoba">Córdoba</option><option value="Corrientes">Corrientes</option><option value="Entre Ríos">Entre Ríos</option><option value="Formosa">Formosa</option><option value="Jujuy">Jujuy</option><option value="La Pampa">La Pampa</option><option value="La Rioja">La Rioja</option><option value="Mendoza">Mendoza</option><option value="Misiones">Misiones</option><option value="Neuquén (Patagonia)">Neuquén (Patagonia)</option><option value="Río Negro (Patagonia)">Río Negro (Patagonia)</option><option value="Salta">Salta</option><option value="San Juan">San Juan</option><option value="San Luis">San Luis</option><option value="Santa Cruz (Patagonia)">Santa Cruz (Patagonia)</option><option value="Santa Fe">Santa Fe</option><option value="Santiago del Estero">Santiago del Estero</option><option value="Tierra del Fuego (Patagonia)">Tierra del Fuego (Patagonia)</option><option value="Tucumán">Tucumán</option><option value="Buenos Aires (Provincia)">Buenos Aires (Provincia)</option><option value="Catamarca">Catamarca</option><option value="Chaco">Chaco</option><option value="Chubut (Patagonia)">Chubut (Patagonia)</option><option value="Ciudad Autónoma de Buenos Aires (CABA)">Ciudad Autónoma de Buenos Aires (CABA)</option><option value="Córdoba">Córdoba</option><option value="Corrientes">Corrientes</option><option value="Entre Ríos">Entre Ríos</option><option value="Formosa">Formosa</option><option value="Jujuy">Jujuy</option><option value="La Pampa">La Pampa</option><option value="La Rioja">La Rioja</option><option value="Mendoza">Mendoza</option><option value="Misiones">Misiones</option><option value="Neuquén (Patagonia)">Neuquén (Patagonia)</option><option value="Río Negro (Patagonia)">Río Negro (Patagonia)</option><option value="Salta">Salta</option><option value="San Juan">San Juan</option><option value="San Luis">San Luis</option><option value="Santa Cruz (Patagonia)">Santa Cruz (Patagonia)</option><option value="Santa Fe">Santa Fe</option><option value="Santiago del Estero">Santiago del Estero</option><option value="Tierra del Fuego (Patagonia)">Tierra del Fuego (Patagonia)</option><option value="Tucumán">Tucumán</option></select>
+    <div class="filter-divider"></div>
+    <input class="filter-input" id="filtro-busq" type="text" placeholder="🔍 Buscar efector, provincia…" oninput="aplicarFiltros()">
+    <button class="btn" onclick="resetFiltros()" style="padding:6px 10px; font-size:11px;">✕ Limpiar</button>
+    <span class="filter-count" id="filter-count">Mostrando 56 de 56</span>
+  </div>
+
+  <!-- TABLA -->
+  <div class="table-card">
+    <div class="table-header">
+      <div>
+        <div class="table-title">Detalle por efector y provincia</div>
+        <div class="table-sub">Doble clic en cualquier celda para editar · Clic en semáforo para cambiar estado</div>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Estado</th>
+            <th>Efector</th>
+            <th>Tipo Prestación</th>
+            <th>Localidad</th>
+            <th>Fecha Envío</th>
+            <th>Nomenclador / Valores</th>
+            <th>Documentación</th>
+            <th>Observaciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="print-footer">OSPRERA · Tablero de Gestión de Convenios · <span id="print-date">21 de Abril de 2026 - 18 hs</span> · Uso interno</div>
+</div>
+
+<!-- MODAL AGREGAR EFECTOR -->
+<div class="modal-overlay" id="modal-agregar">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-head-title" id="modal-agregar-title">Agregar nuevo efector</div>
+        <div class="modal-head-sub">Completar los campos disponibles. Los pendientes pueden cargarse luego.</div>
+      </div>
+      <button class="modal-close" onclick="cerrarModalAgregar()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Provincia <span>*</span></label>
+          <select class="form-select" id="f-provincia"><option value="">— Seleccionar —</option><option value="NACIONALES">⭐ NACIONALES</option><option value="Buenos Aires (Provincia)">Buenos Aires (Provincia)</option><option value="Catamarca">Catamarca</option><option value="Chaco">Chaco</option><option value="Chubut (Patagonia)">Chubut (Patagonia)</option><option value="Ciudad Autónoma de Buenos Aires (CABA)">Ciudad Autónoma de Buenos Aires (CABA)</option><option value="Córdoba">Córdoba</option><option value="Corrientes">Corrientes</option><option value="Entre Ríos">Entre Ríos</option><option value="Formosa">Formosa</option><option value="Jujuy">Jujuy</option><option value="La Pampa">La Pampa</option><option value="La Rioja">La Rioja</option><option value="Mendoza">Mendoza</option><option value="Misiones">Misiones</option><option value="Neuquén (Patagonia)">Neuquén (Patagonia)</option><option value="Río Negro (Patagonia)">Río Negro (Patagonia)</option><option value="Salta">Salta</option><option value="San Juan">San Juan</option><option value="San Luis">San Luis</option><option value="Santa Cruz (Patagonia)">Santa Cruz (Patagonia)</option><option value="Santa Fe">Santa Fe</option><option value="Santiago del Estero">Santiago del Estero</option><option value="Tierra del Fuego (Patagonia)">Tierra del Fuego (Patagonia)</option><option value="Tucumán">Tucumán</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estado inicial <span>*</span></label>
+          <div class="semaforo-selector" id="sem-selector">
+            <div class="sem-opt sem-opt-R sel" onclick="seleccionarSem('R')">🔴 Para completar</div>
+            <div class="sem-opt sem-opt-A" onclick="seleccionarSem('A')">🟡 En proceso</div>
+            <div class="sem-opt sem-opt-V" onclick="seleccionarSem('V')">🟢 Completo</div>
+          </div>
+          <input type="hidden" id="f-estado" value="R">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nombre del efector <span>*</span></label>
+          <input class="form-input" id="f-efector" type="text" placeholder="Ej: Clínica San Martín">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo Prestación</label>
+          <input class="form-input" id="f-nivel" type="text" placeholder="Ej: Internación, Ambulatorio…">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Localidad</label>
+          <input class="form-input" id="f-ubicacion" type="text" placeholder="Ej: Capital, Localidad X">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha Envío</label>
+          <input class="form-input" id="f-borrador" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nomenclador / Valores</label>
+          <select class="form-select" id="f-nomenclador">
+            <option value="pendiente">⚠ Pendiente de consenso</option>
+            <option value="proceso">⏳ En negociación</option>
+            <option value="ok">✓ Consensuado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estado Documentación</label>
+          <div style="display:flex;gap:10px;margin-top:6px;">
+            <div id="doc-opt-completo" onclick="selDocEstado('completo')" style="padding: 7px 14px; border-radius: 6px; border-color: var(--gris-300); cursor: pointer; font-size: 11.5px; font-weight: 600; color: var(--verde-tx); background: var(--verde-bg); transition: border-color 0.12s;">✓ Completo</div>
+            <div id="doc-opt-incompleto" onclick="selDocEstado('incompleto')" style="padding: 7px 14px; border-radius: 6px; border-color: var(--rojo); cursor: pointer; font-size: 11.5px; font-weight: 600; color: var(--rojo-tx); background: var(--rojo-bg); transition: border-color 0.12s;">✗ Incompleto</div>
+          </div>
+          <input type="hidden" id="f-docEstado" value="incompleto">
+        </div>
+      </div>
+      <div style="margin-top:14px;" class="form-group form-full">
+        <label class="form-label">Observaciones / Notas</label>
+        <textarea class="form-textarea" id="f-obs" placeholder="Detalles adicionales, trabas, pendientes…"></textarea>
+      </div>
+      <input type="hidden" id="f-edit-id" value="">
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="cerrarModalAgregar()">Cancelar</button>
+      <button class="btn btn-save" onclick="guardarEfector()">💾 Guardar efector</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL HISTORIAL -->
+<div class="modal-overlay" id="modal-historial">
+  <div class="modal modal-hist">
+    <div class="modal-head">
+      <div>
+        <div class="modal-head-title">Historial de cambios</div>
+        <div class="modal-head-sub" id="modal-hist-sub">Sesión actual</div>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('modal-historial').classList.remove('open')">×</button>
+    </div>
+    <div class="modal-body" id="modal-hist-body"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast show" id="toast">✅ observaciones actualizado</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// PROVINCIAS
+// ═══════════════════════════════════════════════
+const PROVINCIAS = [
+  'NACIONALES',
+  'Buenos Aires (Provincia)', 'Catamarca', 'Chaco', 'Chubut (Patagonia)',
+  'Ciudad Autónoma de Buenos Aires (CABA)', 'Córdoba', 'Corrientes',
+  'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja',
+  'Mendoza', 'Misiones', 'Neuquén (Patagonia)', 'Río Negro (Patagonia)',
+  'Salta', 'San Juan', 'San Luis', 'Santa Cruz (Patagonia)',
+  'Santa Fe', 'Santiago del Estero', 'Tierra del Fuego (Patagonia)', 'Tucumán'
+];
+
+// ANEXOS estándar
+const ANEXOS_STD = ['I. Inclu/Exclu', 'II. Normas', 'III. Efectores', 'IV. Facturación', 'V. Aranceles', '1. Docum. Societaria'];
+
+// ═══════════════════════════════════════════════
+// DATOS BASE (una fila de ejemplo por provincia + datos del tablero original migrados)
+// ═══════════════════════════════════════════════
+let datos = [];
+let nextId = 25;
+let BIN_ID = null;
+const JSONBIN_API_KEY = '$2a$10$kmw7RQ8WI4QcUEAejXDHj.on/wOMZhbNmkZzic0k/06rDs/6qZGJy';
+const JSONBIN_BASE = 'https://api.jsonbin.io/v3';
+
+
+let nextId = (function(){ try { var s=document.getElementById('__nextid_store__'); return s&&s.textContent.trim() ? parseInt(s.textContent) : 25; } catch(e){ return 25; }})();
+let historial = [];
+let cambiosSesion = 0;
+let filtroActivo = '';
+let activeDropdown = null;
+
+// ═══════════════════════════════════════════════
+// CONFIG SEMÁFORO
+// ═══════════════════════════════════════════════
+const SEM = {
+  'R': { label:'Para completar', badgeClass:'badge-R', dot:'var(--rojo-dot)', bg:'var(--rojo-bg)', tx:'var(--rojo-tx)', histBg:'#fee2e2', histTx:'#991b1b' },
+  'A': { label:'En proceso',     badgeClass:'badge-A', dot:'var(--amarillo-dot)', bg:'var(--amarillo-bg)', tx:'var(--amarillo-tx)', histBg:'#fef3c7', histTx:'#92400e' },
+  'V': { label:'Completo',       badgeClass:'badge-V', dot:'var(--verde-dot)', bg:'var(--verde-bg)', tx:'var(--verde-tx)', histBg:'#dcfce7', histTx:'#14532d' }
+};
+
+// ═══════════════════════════════════════════════
+// UTIL
+// ═══════════════════════════════════════════════
+const getById = id => datos.find(d => d.id === id);
+const ahora = () => new Date().toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
+const fmtFecha = str => { if(!str) return '—'; const [y,m,d]=str.split('-'); return `${d}/${m}/${y}`; };
+const hoy = () => new Date().toISOString().split('T')[0];
+const diasHasta = str => { if(!str) return null; const d=new Date(str), h=new Date(); return Math.ceil((d-h)/(1000*60*60*24)); };
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ═══════════════════════════════════════════════
+// POBLAR SELECTS DE PROVINCIAS
+// ═══════════════════════════════════════════════
+function poblarSelectProvincias() {
+  const selFiltro = document.getElementById('filtro-provincia');
+  const selForm = document.getElementById('f-provincia');
+  PROVINCIAS.forEach(p => {
+    const o1 = document.createElement('option'); o1.value = p; o1.textContent = p; selFiltro.appendChild(o1);
+    const o2 = document.createElement('option'); o2.value = p; o2.textContent = p; selForm.appendChild(o2);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// RENDER TABLA
+// ═══════════════════════════════════════════════
+function aplicarFiltros() {
+  const est = document.getElementById('filtro-estado').value;
+  const prov = document.getElementById('filtro-provincia').value;
+  const busq = document.getElementById('filtro-busq').value.toLowerCase();
+  const filtrados = datos.filter(d => {
+    if (est && d.estado !== est) return false;
+    if (prov && d.provincia !== prov) return false;
+    if (busq) {
+      const haystack = [d.provincia, d.efector, d.nivel, d.ubicacion, d.observaciones].join(' ').toLowerCase();
+      if (!haystack.includes(busq)) return false;
+    }
+    return true;
+  });
+  renderTabla(filtrados);
+  document.getElementById('filter-count').textContent = `Mostrando ${filtrados.length} de ${datos.length}`;
+}
+
+function filtrarEstado(est) {
+  document.getElementById('filtro-estado').value = est;
+  // toggle KPI active
+  document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active'));
+  if (est === '') document.getElementById('kpi-total').classList.add('active');
+  else if (est === 'R') document.getElementById('kpi-R').classList.add('active');
+  else if (est === 'A') document.getElementById('kpi-A').classList.add('active');
+  else if (est === 'V') document.getElementById('kpi-V').classList.add('active');
+  aplicarFiltros();
+}
+
+function resetFiltros() {
+  document.getElementById('filtro-estado').value = '';
+  document.getElementById('filtro-provincia').value = '';
+  document.getElementById('filtro-busq').value = '';
+  document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('kpi-total').classList.add('active');
+  aplicarFiltros();
+}
+
+function renderTabla(lista) {
+  lista = lista || datos;
+  const tb = document.getElementById('tbody');
+  if (!lista.length) {
+    tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:36px;color:var(--gris-500);font-style:italic;">No se encontraron efectores.</td></tr>';
+    return;
+  }
+
+  // Agrupar por provincia respetando orden de PROVINCIAS
+  const grupos = {};
+  lista.forEach(d => {
+    if (!grupos[d.provincia]) grupos[d.provincia] = [];
+    grupos[d.provincia].push(d);
+  });
+  const orden = PROVINCIAS.filter(p => grupos[p])
+    .concat(Object.keys(grupos).filter(p => !PROVINCIAS.includes(p)));
+
+  let rows = '';
+  orden.forEach((prov, gi) => {
+    const efectores = grupos[prov];
+    const cR = efectores.filter(e => e.estado==='R').length;
+    const cA = efectores.filter(e => e.estado==='A').length;
+    const cV = efectores.filter(e => e.estado==='V').length;
+    const total = efectores.length;
+
+    const cnts = [
+      cR ? '<span class="prov-cnt prov-cnt-R">🔴 '+cR+'</span>' : '',
+      cA ? '<span class="prov-cnt prov-cnt-A">🟡 '+cA+'</span>' : '',
+      cV ? '<span class="prov-cnt prov-cnt-V">🟢 '+cV+'</span>' : ''
+    ].filter(Boolean).join('');
+
+    // Fila cabecera de provincia
+    const esNacional = prov === 'NACIONALES';
+    rows += '<tr class="tr-prov' + (gi===0 ? ' first' : '') + (esNacional ? ' tr-prov-nacional' : '') + '">'
+      + '<td colspan="8">'
+        + '<div class="prov-header">'
+          + '<span class="prov-nombre">'+prov+'</span>'
+          + '<span class="prov-contadores">'+cnts+'</span>'
+          + '<span class="prov-total">'+total+' efector'+(total!==1?'es':'')+'</span>'
+          + '<button class="prov-add" onclick="abrirModalAgregarEn(\''+prov.replace(/'/g,"\\'")+'\')" >＋ Agregar efector</button>'
+        + '</div>'
+      + '</td>'
+    + '</tr>';
+
+    // Filas de efectores (sin columna provincia)
+    efectores.forEach(d => {
+      const sc = SEM[d.estado] || SEM['R'];
+      const nomMap = {
+        ok: '<span class="pill pill-ok">✓ Consensuado</span>',
+        proceso: '<span class="pill pill-pend">⏳ En negociación</span>',
+        pendiente: '<span class="pill pill-no">⚠ Pendiente</span>'
+      };
+      const nomTxt = nomMap[d.nomenclador] || nomMap['pendiente'];
+      const docCompleto = d.docEstado === 'completo';
+      const docTxt = docCompleto
+        ? '<span class="pill pill-ok" style="cursor:pointer" onclick="toggleDoc('+d.id+')" title="Clic para cambiar">✓ Completo</span>'
+        : '<span class="pill pill-no" style="cursor:pointer" onclick="toggleDoc('+d.id+')" title="Clic para cambiar">✗ Incompleto</span>';
+      const borradorTxt = d.borrador
+        ? '<span class="date-tag">📄 '+fmtFecha(d.borrador)+'</span>'
+        : '<span style="color:var(--gris-400);font-size:10.5px;">—</span>';
+
+      rows += '<tr>'
+        + '<td class="td-estado"><button class="badge '+sc.badgeClass+'" onclick="abrirDropdown(this,'+d.id+')" title="Clic para cambiar">● '+sc.label+'</button></td>'
+        + '<td><span class="editable" ondblclick="editar(this,'+d.id+',\'efector\')">'+(d.efector||'<em style="color:var(--gris-400)">Sin datos</em>')+'</span><span class="edit-tip">✏️</span></td>'
+        + '<td><span class="editable" ondblclick="editar(this,'+d.id+',\'nivel\')">'+(d.nivel||'<em style="color:var(--gris-400)">—</em>')+'</span><span class="edit-tip">✏️</span></td>'
+        + '<td><span class="editable" ondblclick="editar(this,'+d.id+',\'ubicacion\')">'+(d.ubicacion||'<em style="color:var(--gris-400)">—</em>')+'</span><span class="edit-tip">✏️</span></td>'
+        + '<td>'+borradorTxt+'<button onclick="editarFecha('+d.id+',\'borrador\')" style="display:block;margin-top:2px;font-size:9px;color:var(--azul-claro);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;">editar</button></td>'
+        + '<td>'+nomTxt+'<br><button onclick="ciclarNomenclador('+d.id+')" style="margin-top:4px;font-size:9px;color:var(--azul-claro);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;">cambiar</button></td>'
+        + '<td>'+docTxt+'</td>'
+        + '<td><span class="editable" ondblclick="editar(this,'+d.id+',\'observaciones\')">'+(d.observaciones||'—')+'</span><span class="edit-tip">✏️</span></td>'
+      + '</tr>';
+    });
+  });
+
+  tb.innerHTML = rows;
+}
+
+
+
+// ═══════════════════════════════════════════════
+// MÉTRICAS KPI
+// ═══════════════════════════════════════════════
+function actualizarMetricas() {
+  const tot = datos.length;
+  const r   = datos.filter(d=>d.estado==='R').length;
+  const a   = datos.filter(d=>d.estado==='A').length;
+  const v   = datos.filter(d=>d.estado==='V').length;
+  const provTot = new Set(datos.map(d=>d.provincia)).size;
+  const provR   = new Set(datos.filter(d=>d.estado==='R').map(d=>d.provincia)).size;
+  const provA   = new Set(datos.filter(d=>d.estado==='A').map(d=>d.provincia)).size;
+  const provV   = new Set(datos.filter(d=>d.estado==='V').map(d=>d.provincia)).size;
+  document.getElementById('kn-total').textContent = tot;
+  document.getElementById('kn-R').textContent = r;
+  document.getElementById('kn-A').textContent = a;
+  document.getElementById('kn-V').textContent = v;
+  const subTotal = document.getElementById('kn-total-sub');
+  const subR = document.getElementById('kn-R-sub');
+  const subA = document.getElementById('kn-A-sub');
+  const subV = document.getElementById('kn-V-sub');
+  if(subTotal) subTotal.textContent = 'en '+provTot+' provincia'+(provTot!==1?'s':'');
+  if(subR) subR.textContent = 'en '+provR+' provincia'+(provR!==1?'s':'');
+  if(subA) subA.textContent = 'en '+provA+' provincia'+(provA!==1?'s':'');
+  if(subV) subV.textContent = 'en '+provV+' provincia'+(provV!==1?'s':'');
+}
+
+// ═══════════════════════════════════════════════
+// DROPDOWN SEMÁFORO
+// ═══════════════════════════════════════════════
+function abrirDropdown(el, id) {
+  cerrarDropdown();
+  const d = getById(id);
+  const td = el.closest('td');
+  const div = document.createElement('div');
+  div.className = 'estado-dropdown'; div.id = 'active-dd';
+  div.innerHTML = Object.entries(SEM).map(([k,v]) => `
+    <div class="edd-item${k===d.estado?' current':''}" onclick="cambiarEstado(${id},'${k}')">
+      <div class="edd-dot" style="background:${v.dot}"></div>
+      <div>
+        <span style="color:${v.tx}">${v.label}</span>
+        <span class="edd-desc">${k==='R'?'Falta completar pasos':k==='A'?'Gestión en curso':'Todos los requisitos cumplidos'}</span>
+      </div>
+    </div>`).join('');
+  td.appendChild(div); activeDropdown = div;
+  setTimeout(()=>document.addEventListener('click', cerrarDDHandler), 10);
+}
+function cerrarDDHandler(e) { if(activeDropdown && !activeDropdown.contains(e.target)) cerrarDropdown(); }
+function cerrarDropdown() { if(activeDropdown){activeDropdown.remove();activeDropdown=null;} document.removeEventListener('click',cerrarDDHandler); }
+
+function cambiarEstado(id, nuevo) {
+  const d = getById(id);
+  const ant = d.estado;
+  if (ant === nuevo) { cerrarDropdown(); return; }
+  d.estado = nuevo;
+  cambiosSesion++;
+  historial.unshift({ ts:ahora(), prov:d.provincia, ef:d.efector||'(sin efector)', de:ant, a:nuevo });
+  cerrarDropdown();
+  actualizarMetricas();
+  aplicarFiltros();
+  guardarEnNube(true);
+  toast(`✅ ${d.provincia}: ${SEM[ant].label} → ${SEM[nuevo].label}`);
+  sugerirSemaforo(d);
+}
+
+// Sugerencia automática de semáforo
+function sugerirSemaforo(d) {
+  const anexosCumplidos = (d.anexos||[]).filter(Boolean).length;
+  const totalAnexos = ANEXOS_STD.length;
+  if (d.nomenclador==='ok' && d.borrador && d.analisisFecha && anexosCumplidos===totalAnexos && d.vencimiento) {
+    if (d.estado !== 'V') toast('💡 Sugerencia: todos los campos están completos. Podés marcar como 🟢 Completo.');
+  } else if ((d.borrador || d.analisisFecha || d.nomenclador==='ok') && d.estado === 'R') {
+    toast('💡 Sugerencia: hay avances registrados. Considerá marcar como 🟡 En proceso.');
+  }
+}
+
+// ═══════════════════════════════════════════════
+// EDICIÓN INLINE
+// ═══════════════════════════════════════════════
+function editar(el, id, campo) {
+  if (el.contentEditable === 'true') return;
+  const original = getById(id)[campo] || '';
+  el.contentEditable = 'true'; el.focus();
+  const r = document.createRange(), s = window.getSelection();
+  r.selectNodeContents(el); r.collapse(false); s.removeAllRanges(); s.addRange(r);
+  el.onblur = () => {
+    el.contentEditable = 'false';
+    const nv = el.innerText.trim();
+    if (nv !== original) {
+      getById(id)[campo] = nv;
+      guardarEnNube(true);
+      toast(`✅ ${campo} actualizado`);
+      sugerirSemaforo(getById(id));
+    }
+  };
+  el.onkeydown = e => {
+    if (e.key==='Enter'&&!e.shiftKey) { e.preventDefault(); el.blur(); }
+    if (e.key==='Escape') { el.contentEditable='false'; el.innerText=original; }
+  };
+}
+
+function editarFecha(id, campo) {
+  const d = getById(id);
+  const actual = d[campo] || '';
+  const val = prompt(`Fecha de "${campo==='borrador'?'envío borrador convenio':'vencimiento'}" para ${d.efector||d.provincia}\n(Formato: YYYY-MM-DD, ej: 2026-05-10):`, actual);
+  if (val !== null) {
+    d[campo] = val;
+    aplicarFiltros();
+    toast(`📅 Fecha actualizada`);
+    sugerirSemaforo(d);
+  }
+}
+
+function editarFechaAnalisis(id) {
+  const d = getById(id);
+  const f = prompt(`Fecha del análisis prestacional (YYYY-MM-DD):`, d.analisisFecha||'');
+  if (f !== null) d.analisisFecha = f;
+  const dict = prompt(`Dictamen / Observaciones del análisis:`, d.analisisDictamen||'');
+  if (dict !== null) d.analisisDictamen = dict;
+  aplicarFiltros();
+  toast(`📋 Análisis prestacional actualizado`);
+  sugerirSemaforo(d);
+}
+
+function toggleAnexo(id, idx) {
+  const d = getById(id);
+  if (!d.anexos) d.anexos = [false,false,false,false,false,false];
+  d.anexos[idx] = !d.anexos[idx];
+  aplicarFiltros();
+  toast(`${d.anexos[idx]?'✅':'↩️'} ${ANEXOS_STD[idx]} ${d.anexos[idx]?'cumplido':'desmarcado'}`);
+  sugerirSemaforo(d);
+}
+
+
+function toggleDoc(id) {
+  const d = getById(id);
+  d.docEstado = d.docEstado === 'completo' ? 'incompleto' : 'completo';
+  aplicarFiltros();
+  actualizarMetricas();
+  guardarEnNube(true);
+  toast('📋 Documentación: ' + (d.docEstado === 'completo' ? '✓ Completo' : '✗ Incompleto'));
+}
+
+function ciclarNomenclador(id) {
+  const d = getById(id);
+  const orden = ['pendiente','proceso','ok'];
+  const idx = orden.indexOf(d.nomenclador);
+  d.nomenclador = orden[(idx+1)%3];
+  aplicarFiltros();
+  toast(`📊 Nomenclador: ${d.nomenclador==='ok'?'Consensuado ✓':d.nomenclador==='proceso'?'En negociación':'Pendiente'}`);
+  sugerirSemaforo(d);
+}
+
+// ═══════════════════════════════════════════════
+// MODAL AGREGAR EFECTOR
+// ═══════════════════════════════════════════════
+function buildAnexosForm(vals) {
+  const wrap = document.getElementById('f-anexos-wrap');
+  wrap.innerHTML = ANEXOS_STD.map((a,i) => `
+    <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 8px;border-radius:5px;border:1px solid var(--gris-300);user-select:none;">
+      <input type="checkbox" id="fa-${i}" ${vals&&vals[i]?'checked':''} style="cursor:pointer;">
+      <span>${a}</span>
+    </label>`).join('');
+}
+
+function abrirModalAgregarEn(prov) {
+  abrirModalAgregar();
+  document.getElementById('f-provincia').value = prov;
+}
+
+function abrirModalAgregar() {
+  document.getElementById('modal-agregar-title').textContent = 'Agregar nuevo efector';
+  document.getElementById('f-edit-id').value = '';
+  ['f-efector','f-nivel','f-ubicacion','f-obs'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  const fb = document.getElementById('f-borrador'); if(fb) fb.value='';
+  document.getElementById('f-provincia').value = '';
+  document.getElementById('f-nomenclador').value = 'pendiente';
+  document.getElementById('f-estado').value = 'R';
+  seleccionarSem('R');
+  selDocEstado('incompleto');
+  document.getElementById('modal-agregar').classList.add('open');
+}
+
+function abrirModalEditar(id) {
+  const d = getById(id);
+  document.getElementById('modal-agregar-title').textContent = 'Editar: ' + (d.efector || d.provincia);
+  document.getElementById('f-edit-id').value = id;
+  document.getElementById('f-provincia').value = d.provincia;
+  document.getElementById('f-efector').value = d.efector || '';
+  document.getElementById('f-nivel').value = d.nivel || '';
+  document.getElementById('f-ubicacion').value = d.ubicacion || '';
+  document.getElementById('f-borrador').value = d.borrador || '';
+  document.getElementById('f-nomenclador').value = d.nomenclador || 'pendiente';
+  document.getElementById('f-obs').value = d.observaciones || '';
+  document.getElementById('f-estado').value = d.estado;
+  seleccionarSem(d.estado);
+  selDocEstado(d.docEstado || 'incompleto');
+  document.getElementById('modal-agregar').classList.add('open');
+}
+
+function cerrarModalAgregar() { document.getElementById('modal-agregar').classList.remove('open'); }
+
+
+function selDocEstado(val) {
+  document.getElementById('f-docEstado').value = val;
+  const c = document.getElementById('doc-opt-completo');
+  const i = document.getElementById('doc-opt-incompleto');
+  if(c) c.style.borderColor = val==='completo' ? 'var(--verde)' : 'var(--gris-300)';
+  if(i) i.style.borderColor = val==='incompleto' ? 'var(--rojo)' : 'var(--gris-300)';
+}
+function seleccionarSem(val) {
+  document.getElementById('f-estado').value = val;
+  document.querySelectorAll('.sem-opt').forEach(el => {
+    el.classList.remove('sel');
+    if (el.classList.contains(`sem-opt-${val}`)) el.classList.add('sel');
+  });
+}
+
+function guardarEfector() {
+  const prov = document.getElementById('f-provincia').value;
+  const efec = document.getElementById('f-efector').value.trim();
+  if (!prov) { toast('⚠️ Seleccioná una provincia'); return; }
+  const editId = parseInt(document.getElementById('f-edit-id').value) || 0;
+  const obj = {
+    provincia: prov,
+    estado: document.getElementById('f-estado').value,
+    efector: efec,
+    nivel: document.getElementById('f-nivel').value.trim(),
+    ubicacion: document.getElementById('f-ubicacion').value.trim(),
+    borrador: document.getElementById('f-borrador').value,
+    nomenclador: document.getElementById('f-nomenclador').value,
+    docEstado: document.getElementById('f-docEstado').value,
+    observaciones: document.getElementById('f-obs').value.trim(),
+    analisisFecha: '', analisisDictamen: '', vencimiento: '', anexos: [false,false,false,false,false,false]
+  };
+  if (editId) {
+    Object.assign(getById(editId), obj);
+    toast('✅ Efector actualizado');
+  } else {
+    obj.id = nextId++;
+    datos.push(obj);
+    cambiosSesion++;
+    toast('✅ Efector agregado: ' + (efec || prov));
+  }
+  cerrarModalAgregar();
+  actualizarMetricas();
+  aplicarFiltros();
+  guardarEnNube(false);
+}
+
+// ═══════════════════════════════════════════════
+// HISTORIAL
+// ═══════════════════════════════════════════════
+function abrirHistorial() {
+  const body = document.getElementById('modal-hist-body');
+  document.getElementById('modal-hist-sub').textContent = `${historial.length} cambio${historial.length!==1?'s':''} en esta sesión`;
+  if (!historial.length) {
+    body.innerHTML = '<div class="hist-empty">Todavía no hay cambios de estado en esta sesión.</div>';
+  } else {
+    body.innerHTML = historial.map(h => {
+      const de = SEM[h.de]||SEM['R'], a = SEM[h.a]||SEM['V'];
+      return `<div class="hist-entry">
+        <div class="hist-time">${h.ts}</div>
+        <div style="flex:1">
+          <div class="hist-prov">${h.prov} — ${h.ef}</div>
+          <div class="hist-change">
+            <span class="hist-badge" style="background:${de.histBg};color:${de.histTx}">${de.label}</span>
+            <span>→</span>
+            <span class="hist-badge" style="background:${a.histBg};color:${a.histTx}">${a.label}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('modal-historial').classList.add('open');
+}
+
+// ═══════════════════════════════════════════════
+// EXPORTAR CSV
+// ═══════════════════════════════════════════════
+function exportarCSV() {
+  const cab = ['Estado','Provincia','Efector','Nivel/Prestación','Ubicación','Borrador enviado','Fecha análisis','Dictamen análisis','Nomenclador','Vencimiento','Anexos cumplidos','Observaciones'];
+  const filas = datos.map(d => {
+    const anexosCump = ANEXOS_STD.filter((_,i)=>d.anexos&&d.anexos[i]).join(' | ');
+    return [SEM[d.estado]?.label||d.estado, d.provincia, d.efector, d.nivel, d.ubicacion, fmtFecha(d.borrador), fmtFecha(d.analisisFecha), d.analisisDictamen, d.nomenclador, fmtFecha(d.vencimiento), anexosCump, d.observaciones]
+      .map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(';');
+  });
+  const csv = '\uFEFF'+cab.join(';')+'\n'+filas.join('\n');
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='Convenios_OSPRERA_'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click(); URL.revokeObjectURL(a.href); toast('📥 CSV exportado');
+}
+
+// ═══════════════════════════════════════════════
+// GUARDAR HTML
+// ═══════════════════════════════════════════════
+function guardarHTML() {
+  document.getElementById('__datos_store__').textContent = JSON.stringify(datos);
+  document.getElementById('__nextid_store__').textContent = String(nextId);
+  const tb = document.getElementById('tbody');
+  const bk = tb.innerHTML;
+  tb.innerHTML = '';
+  const blob = new Blob(['<!DOCTYPE html>' + document.documentElement.outerHTML], {type:'text/html;charset=utf-8;'});
+  tb.innerHTML = bk;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'Tablero_Convenios_OSPRERA_' + new Date().toISOString().split('T')[0].replace(/-/g,'_') + '.html';
+  a.style.display='none'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+  toast('💾 Guardado con todos los datos');
+}
+
+
+// ══════════════════════════════════════════════
+// JSONBIN — carga y guardado en la nube
+// ══════════════════════════════════════════════
+async function cargarDatos() {
+  const stored = localStorage.getItem('osprera_bin_id');
+  if (stored) BIN_ID = stored;
+
+  if (BIN_ID) {
+    try {
+      const r = await fetch(JSONBIN_BASE + '/b/' + BIN_ID + '/latest', {
+        headers: { 'X-Master-Key': JSONBIN_API_KEY }
+      });
+      if (r.ok) {
+        const j = await r.json();
+        datos = j.record.datos || [];
+        nextId = j.record.nextId || (datos.length ? Math.max(...datos.map(d=>d.id))+1 : 1);
+        actualizarMetricas();
+        aplicarFiltros();
+        ocultarCargando();
+        return;
+      }
+    } catch(e) { console.warn('Error cargando bin:', e); }
+  }
+
+  // Primera vez — crear bin nuevo con los datos iniciales
+  try {
+    mostrarCargando('Inicializando base de datos...');
+    const payload = { datos: [{"id": 1, "provincia": "Tucumán", "estado": "A", "efector": "Sanatorio Parque", "nivel": "Internación / Alta complejidad", "ubicacion": "San Miguel de Tucumán", "borrador": "2026-04-10", "analisisFecha": "2026-04-12", "analisisDictamen": "En revisión por asesoría", "nomenclador": "proceso", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "A la firma de Intervención. Enviado a Asesora de Lococo para su OK.", "docEstado": "incompleto"}, {"id": 2, "provincia": "Jujuy", "estado": "V", "efector": "", "nivel": "", "ubicacion": "", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "pendiente", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Convenios directos a través de la Delegación. Anestesiólogos con Sede Central. Funcionamiento normal.", "docEstado": "incompleto"}, {"id": 3, "provincia": "Salta", "estado": "A", "efector": "", "nivel": "", "ubicacion": "", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "pendiente", "vencimiento": "2026-03-31", "anexos": [false, false, false, false, false, false], "observaciones": "Hacia Modelo de Convenio Directo. Se trabaja entre Red IMAC y generación de convenios directos.", "docEstado": "incompleto"}, {"id": 4, "provincia": "Formosa", "estado": "A", "efector": "FEMEFOR", "nivel": "Prestación general", "ubicacion": "Formosa Capital", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "ok", "vencimiento": "2026-04-30", "anexos": [true, true, true, false, false, false], "observaciones": "FEMEFOR FIRMADO y ACTIVO. Gestiones con ACLYSA, Bioquímicos y AFAAR. Intimación de pago ROISA recibida 09/04.", "docEstado": "completo"}, {"id": 5, "provincia": "Chaco", "estado": "A", "efector": "Colegio de Bioquímicos Chaco", "nivel": "Bioquímica", "ubicacion": "Resistencia", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "ok", "vencimiento": "2026-04-30", "anexos": [true, false, false, false, false, false], "observaciones": "FIRMADO. Convenio con Anestesia en GPM para evaluación. Intimación de pago ROISA 09/04. Reunión ROISA semana 20-24/04.", "docEstado": "completo"}, {"id": 6, "provincia": "Santiago del Estero", "estado": "V", "efector": "Red CIM", "nivel": "Capitado – Cartera Fija", "ubicacion": "Santiago del Estero Capital", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "ok", "vencimiento": "2026-04-01", "anexos": [true, true, false, false, false, false], "observaciones": "Propuesta CIM OK. Padrón 8.500 / Tope $100MM x PMO. Firmado 26/03. Intimación ROISA 09/04.", "docEstado": "completo"}, {"id": 7, "provincia": "Catamarca", "estado": "V", "efector": "JALIL / Sanatorio Pasteur", "nivel": "Capitado", "ubicacion": "Catamarca Capital", "borrador": "2026-04-01", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "proceso", "vencimiento": "2026-04-30", "anexos": [true, false, false, false, false, false], "observaciones": "Negociaciones Anexo I enviado a Pasteur 01/04. Solicitan aumento 50% en valor de cápita.", "docEstado": "completo"}, {"id": 8, "provincia": "La Rioja", "estado": "V", "efector": "JALIL / Sanatorio Pasteur", "nivel": "Capitado", "ubicacion": "La Rioja Capital", "borrador": "2026-04-01", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "proceso", "vencimiento": "2026-04-30", "anexos": [true, false, false, false, false, false], "observaciones": "Comisión Mixta virtual 05/03. Anexo I enviado a Pasteur 01/04. Solicitan aumento 50% cápita. Intimación ROISA 09/04.", "docEstado": "completo"}, {"id": 9, "provincia": "Misiones", "estado": "V", "efector": "Esencial Salud", "nivel": "Capitado – ampliación PMO", "ubicacion": "Toda la provincia", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "proceso", "vencimiento": "2026-12-19", "anexos": [false, false, false, false, false, false], "observaciones": "Convenio capitado vigente. Se negocia ampliación a PMO y reducción de exclusiones.", "docEstado": "incompleto"}, {"id": 10, "provincia": "Corrientes", "estado": "V", "efector": "Esencial Salud / ASPRICO", "nivel": "Capitado / Cartera fija", "ubicacion": "Zona Norte + Capital e Interior", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "ok", "vencimiento": "2026-03-31", "anexos": [false, false, false, false, false, false], "observaciones": "Esencial Salud (Norte) vence 19/12/26. ASPRICO venció 31/03. Propuesta 25% enviada. Posible prórroga.", "docEstado": "incompleto"}, {"id": 11, "provincia": "Santa Fe", "estado": "A", "efector": "Sanatorio Laprida (Rosario)", "nivel": "Internación / Ambulatorio", "ubicacion": "Rosario", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "ok", "vencimiento": "2026-04-30", "anexos": [true, false, false, false, false, false], "observaciones": "FIRMADO 17/03/2026 – SERVICIO ACTIVO. Hospital Italiano (ROS) por presupuesto con derivación autorizada.", "docEstado": "completo"}, {"id": 12, "provincia": "Entre Ríos", "estado": "V", "efector": "Cámara SCYSER / COBER / FEMER", "nivel": "Sanatorial / Bioquímica / Médico", "ubicacion": "Toda la provincia", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "ok", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Convenios vigentes: Anestesia, Cámara Concordia, SCYSER, COBER, FEMER, UKER. Negociaciones para renovaciones.", "docEstado": "incompleto"}, {"id": 13, "provincia": "Córdoba", "estado": "A", "efector": "Clínica y Maternidad del Sol", "nivel": "Internación / Maternidad", "ubicacion": "Córdoba Capital", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "proceso", "vencimiento": "2026-04-30", "anexos": [false, false, false, false, false, false], "observaciones": "CI firmadas. Red Hosp. Italiano próximo a firma (en análisis GPM). Sanatorio Francés en stand by por deuda.", "docEstado": "incompleto"}, {"id": 14, "provincia": "La Pampa", "estado": "R", "efector": "FAERAC (Fundación)", "nivel": "Internación / Ambulatorio", "ubicacion": "Santa Rosa", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "no", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "SERVICIO CORTADO. Deuda TAC $400MM. Finanzas informa saldo a favor OSPRERA $226MM al 08/04. Servicio bloqueado hasta resolución.", "docEstado": "incompleto"}, {"id": 15, "provincia": "Mendoza", "estado": "A", "efector": "RED ACLYSA", "nivel": "Red prestacional", "ubicacion": "Gran Mendoza", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "proceso", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Prestación a través de RED ACLYSA (Oscar Meneguelli). Nueva red actualizada en evaluación.", "docEstado": "incompleto"}, {"id": 16, "provincia": "San Luis", "estado": "V", "efector": "", "nivel": "Convenio directo", "ubicacion": "San Luis Capital", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "pendiente", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Cartas de intención enviadas. Convocando a efectores privados.", "docEstado": "incompleto"}, {"id": 17, "provincia": "San Juan", "estado": "V", "efector": "Colegio Médico de San Juan", "nivel": "Médico general", "ubicacion": "San Juan Capital", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "ok", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Convenio firmado (ampliación de Red). Listado de prestadores con deuda enviado por delegación $47,3MM.", "docEstado": "incompleto"}, {"id": 18, "provincia": "Neuquén (Patagonia)", "estado": "R", "efector": "Red Comahue", "nivel": "Capitado", "ubicacion": "Neuquén Capital", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "proceso", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Sanatorio Pasteur: deuda en gestión judicial (6 cuotas pendiente homologación). Propuesta COMAHUE $83MM en evaluación.", "docEstado": "incompleto"}, {"id": 19, "provincia": "Río Negro (Patagonia)", "estado": "R", "efector": "", "nivel": "Red propia (transición de NATIVUS)", "ubicacion": "Toda la provincia", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "pendiente", "vencimiento": "2026-01-31", "anexos": [false, false, false, false, false, false], "observaciones": "Avanzando a RED PROPIA post-NATIVUS. Reclamos deuda NATIVUS $1,4 mil millones. Saldo OSPRERA a favor $200MM+$291MM.", "docEstado": "incompleto"}, {"id": 20, "provincia": "Chubut (Patagonia)", "estado": "R", "efector": "", "nivel": "Red propia (transición de NATIVUS)", "ubicacion": "Toda la provincia", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "pendiente", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Avanzando a RED PROPIA post-NATIVUS. Saldo OSPRERA a favor $200MM+$291MM al 31/01.", "docEstado": "incompleto"}, {"id": 21, "provincia": "Santa Cruz (Patagonia)", "estado": "R", "efector": "", "nivel": "Red propia (transición de NATIVUS)", "ubicacion": "Toda la provincia", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "pendiente", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Avanzando a RED PROPIA post-NATIVUS. Cartas de Intención para reactivación enviadas. Reclamos de deuda por prestadores.", "docEstado": "incompleto"}, {"id": 22, "provincia": "Tierra del Fuego (Patagonia)", "estado": "R", "efector": "", "nivel": "Red propia (transición de NATIVUS)", "ubicacion": "Ushuaia / Río Grande", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "pendiente", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Gestiones con Sanatorio Fueguino (Río Grande) y Hospital Ushuaia. Saldo OSPRERA a favor $200MM+$291MM.", "docEstado": "incompleto"}, {"id": 23, "provincia": "Ciudad Autónoma de Buenos Aires (CABA)", "estado": "V", "efector": "IMAC Alta Complejidad", "nivel": "Alta complejidad", "ubicacion": "CABA", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "ok", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Plan de expansión activo. Sanatorio Güemes y Hospital Italiano en gestión. Múltiples efectores en incorporación.", "docEstado": "incompleto"}, {"id": 24, "provincia": "Buenos Aires (Provincia)", "estado": "V", "efector": "FABA / FEMEBA", "nivel": "Bioquímica / Médico / Sanatorial", "ubicacion": "Gran Buenos Aires y resto provincial", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "ok", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Plan expansión activo. Diferencia $60MM con FABA por copagos en gestión. Múltiples efectores en incorporación.", "docEstado": "incompleto"}], nextId: 25 };
+    const r = await fetch(JSONBIN_BASE + '/b', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONBIN_API_KEY,
+        'X-Bin-Name': 'Tablero OSPRERA',
+        'X-Bin-Private': 'false'
+      },
+      body: JSON.stringify(payload)
+    });
+    if (r.ok) {
+      const j = await r.json();
+      BIN_ID = j.metadata.id;
+      localStorage.setItem('osprera_bin_id', BIN_ID);
+      datos = payload.datos;
+      nextId = payload.nextId;
+      actualizarMetricas();
+      aplicarFiltros();
+      toast('✅ Base de datos creada en la nube');
+    } else {
+      throw new Error('No se pudo crear el bin');
+    }
+  } catch(e) {
+    console.error(e);
+    // Fallback: usar datos locales
+    datos = [{"id": 1, "provincia": "Tucumán", "estado": "A", "efector": "Sanatorio Parque", "nivel": "Internación / Alta complejidad", "ubicacion": "San Miguel de Tucumán", "borrador": "2026-04-10", "analisisFecha": "2026-04-12", "analisisDictamen": "En revisión por asesoría", "nomenclador": "proceso", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "A la firma de Intervención. Enviado a Asesora de Lococo para su OK.", "docEstado": "incompleto"}, {"id": 2, "provincia": "Jujuy", "estado": "V", "efector": "", "nivel": "", "ubicacion": "", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "pendiente", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Convenios directos a través de la Delegación. Anestesiólogos con Sede Central. Funcionamiento normal.", "docEstado": "incompleto"}, {"id": 3, "provincia": "Salta", "estado": "A", "efector": "", "nivel": "", "ubicacion": "", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "pendiente", "vencimiento": "2026-03-31", "anexos": [false, false, false, false, false, false], "observaciones": "Hacia Modelo de Convenio Directo. Se trabaja entre Red IMAC y generación de convenios directos.", "docEstado": "incompleto"}, {"id": 4, "provincia": "Formosa", "estado": "A", "efector": "FEMEFOR", "nivel": "Prestación general", "ubicacion": "Formosa Capital", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "ok", "vencimiento": "2026-04-30", "anexos": [true, true, true, false, false, false], "observaciones": "FEMEFOR FIRMADO y ACTIVO. Gestiones con ACLYSA, Bioquímicos y AFAAR. Intimación de pago ROISA recibida 09/04.", "docEstado": "completo"}, {"id": 5, "provincia": "Chaco", "estado": "A", "efector": "Colegio de Bioquímicos Chaco", "nivel": "Bioquímica", "ubicacion": "Resistencia", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "ok", "vencimiento": "2026-04-30", "anexos": [true, false, false, false, false, false], "observaciones": "FIRMADO. Convenio con Anestesia en GPM para evaluación. Intimación de pago ROISA 09/04. Reunión ROISA semana 20-24/04.", "docEstado": "completo"}, {"id": 6, "provincia": "Santiago del Estero", "estado": "V", "efector": "Red CIM", "nivel": "Capitado – Cartera Fija", "ubicacion": "Santiago del Estero Capital", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "ok", "vencimiento": "2026-04-01", "anexos": [true, true, false, false, false, false], "observaciones": "Propuesta CIM OK. Padrón 8.500 / Tope $100MM x PMO. Firmado 26/03. Intimación ROISA 09/04.", "docEstado": "completo"}, {"id": 7, "provincia": "Catamarca", "estado": "V", "efector": "JALIL / Sanatorio Pasteur", "nivel": "Capitado", "ubicacion": "Catamarca Capital", "borrador": "2026-04-01", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "proceso", "vencimiento": "2026-04-30", "anexos": [true, false, false, false, false, false], "observaciones": "Negociaciones Anexo I enviado a Pasteur 01/04. Solicitan aumento 50% en valor de cápita.", "docEstado": "completo"}, {"id": 8, "provincia": "La Rioja", "estado": "V", "efector": "JALIL / Sanatorio Pasteur", "nivel": "Capitado", "ubicacion": "La Rioja Capital", "borrador": "2026-04-01", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "proceso", "vencimiento": "2026-04-30", "anexos": [true, false, false, false, false, false], "observaciones": "Comisión Mixta virtual 05/03. Anexo I enviado a Pasteur 01/04. Solicitan aumento 50% cápita. Intimación ROISA 09/04.", "docEstado": "completo"}, {"id": 9, "provincia": "Misiones", "estado": "V", "efector": "Esencial Salud", "nivel": "Capitado – ampliación PMO", "ubicacion": "Toda la provincia", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "proceso", "vencimiento": "2026-12-19", "anexos": [false, false, false, false, false, false], "observaciones": "Convenio capitado vigente. Se negocia ampliación a PMO y reducción de exclusiones.", "docEstado": "incompleto"}, {"id": 10, "provincia": "Corrientes", "estado": "V", "efector": "Esencial Salud / ASPRICO", "nivel": "Capitado / Cartera fija", "ubicacion": "Zona Norte + Capital e Interior", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "ok", "vencimiento": "2026-03-31", "anexos": [false, false, false, false, false, false], "observaciones": "Esencial Salud (Norte) vence 19/12/26. ASPRICO venció 31/03. Propuesta 25% enviada. Posible prórroga.", "docEstado": "incompleto"}, {"id": 11, "provincia": "Santa Fe", "estado": "A", "efector": "Sanatorio Laprida (Rosario)", "nivel": "Internación / Ambulatorio", "ubicacion": "Rosario", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "ok", "vencimiento": "2026-04-30", "anexos": [true, false, false, false, false, false], "observaciones": "FIRMADO 17/03/2026 – SERVICIO ACTIVO. Hospital Italiano (ROS) por presupuesto con derivación autorizada.", "docEstado": "completo"}, {"id": 12, "provincia": "Entre Ríos", "estado": "V", "efector": "Cámara SCYSER / COBER / FEMER", "nivel": "Sanatorial / Bioquímica / Médico", "ubicacion": "Toda la provincia", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "ok", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Convenios vigentes: Anestesia, Cámara Concordia, SCYSER, COBER, FEMER, UKER. Negociaciones para renovaciones.", "docEstado": "incompleto"}, {"id": 13, "provincia": "Córdoba", "estado": "A", "efector": "Clínica y Maternidad del Sol", "nivel": "Internación / Maternidad", "ubicacion": "Córdoba Capital", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "proceso", "vencimiento": "2026-04-30", "anexos": [false, false, false, false, false, false], "observaciones": "CI firmadas. Red Hosp. Italiano próximo a firma (en análisis GPM). Sanatorio Francés en stand by por deuda.", "docEstado": "incompleto"}, {"id": 14, "provincia": "La Pampa", "estado": "R", "efector": "FAERAC (Fundación)", "nivel": "Internación / Ambulatorio", "ubicacion": "Santa Rosa", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "no", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "SERVICIO CORTADO. Deuda TAC $400MM. Finanzas informa saldo a favor OSPRERA $226MM al 08/04. Servicio bloqueado hasta resolución.", "docEstado": "incompleto"}, {"id": 15, "provincia": "Mendoza", "estado": "A", "efector": "RED ACLYSA", "nivel": "Red prestacional", "ubicacion": "Gran Mendoza", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "proceso", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Prestación a través de RED ACLYSA (Oscar Meneguelli). Nueva red actualizada en evaluación.", "docEstado": "incompleto"}, {"id": 16, "provincia": "San Luis", "estado": "V", "efector": "", "nivel": "Convenio directo", "ubicacion": "San Luis Capital", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "pendiente", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Cartas de intención enviadas. Convocando a efectores privados.", "docEstado": "incompleto"}, {"id": 17, "provincia": "San Juan", "estado": "V", "efector": "Colegio Médico de San Juan", "nivel": "Médico general", "ubicacion": "San Juan Capital", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "ok", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Convenio firmado (ampliación de Red). Listado de prestadores con deuda enviado por delegación $47,3MM.", "docEstado": "incompleto"}, {"id": 18, "provincia": "Neuquén (Patagonia)", "estado": "R", "efector": "Red Comahue", "nivel": "Capitado", "ubicacion": "Neuquén Capital", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "proceso", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Sanatorio Pasteur: deuda en gestión judicial (6 cuotas pendiente homologación). Propuesta COMAHUE $83MM en evaluación.", "docEstado": "incompleto"}, {"id": 19, "provincia": "Río Negro (Patagonia)", "estado": "R", "efector": "", "nivel": "Red propia (transición de NATIVUS)", "ubicacion": "Toda la provincia", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "pendiente", "vencimiento": "2026-01-31", "anexos": [false, false, false, false, false, false], "observaciones": "Avanzando a RED PROPIA post-NATIVUS. Reclamos deuda NATIVUS $1,4 mil millones. Saldo OSPRERA a favor $200MM+$291MM.", "docEstado": "incompleto"}, {"id": 20, "provincia": "Chubut (Patagonia)", "estado": "R", "efector": "", "nivel": "Red propia (transición de NATIVUS)", "ubicacion": "Toda la provincia", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "pendiente", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Avanzando a RED PROPIA post-NATIVUS. Saldo OSPRERA a favor $200MM+$291MM al 31/01.", "docEstado": "incompleto"}, {"id": 21, "provincia": "Santa Cruz (Patagonia)", "estado": "R", "efector": "", "nivel": "Red propia (transición de NATIVUS)", "ubicacion": "Toda la provincia", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "pendiente", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Avanzando a RED PROPIA post-NATIVUS. Cartas de Intención para reactivación enviadas. Reclamos de deuda por prestadores.", "docEstado": "incompleto"}, {"id": 22, "provincia": "Tierra del Fuego (Patagonia)", "estado": "R", "efector": "", "nivel": "Red propia (transición de NATIVUS)", "ubicacion": "Ushuaia / Río Grande", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "pendiente", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Gestiones con Sanatorio Fueguino (Río Grande) y Hospital Ushuaia. Saldo OSPRERA a favor $200MM+$291MM.", "docEstado": "incompleto"}, {"id": 23, "provincia": "Ciudad Autónoma de Buenos Aires (CABA)", "estado": "V", "efector": "IMAC Alta Complejidad", "nivel": "Alta complejidad", "ubicacion": "CABA", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "ok", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Plan de expansión activo. Sanatorio Güemes y Hospital Italiano en gestión. Múltiples efectores en incorporación.", "docEstado": "incompleto"}, {"id": 24, "provincia": "Buenos Aires (Provincia)", "estado": "V", "efector": "FABA / FEMEBA", "nivel": "Bioquímica / Médico / Sanatorial", "ubicacion": "Gran Buenos Aires y resto provincial", "borrador": "", "analisisFecha": "", "analisisDictamen": "", "nomenclador": "ok", "vencimiento": "", "anexos": [false, false, false, false, false, false], "observaciones": "Plan expansión activo. Diferencia $60MM con FABA por copagos en gestión. Múltiples efectores en incorporación.", "docEstado": "incompleto"}];
+    nextId = 25;
+    actualizarMetricas();
+    aplicarFiltros();
+    toast('⚠️ Modo offline — los cambios no se guardarán en la nube');
+  }
+  ocultarCargando();
+}
+
+let guardandoTimeout = null;
+let ultimoGuardado = 0;
+
+async function guardarEnNube(silencioso) {
+  if (!BIN_ID) return;
+  const ahora2 = Date.now();
+  if (ahora2 - ultimoGuardado < 1000) {
+    clearTimeout(guardandoTimeout);
+    guardandoTimeout = setTimeout(() => guardarEnNube(silencioso), 1200);
+    return;
+  }
+  ultimoGuardado = ahora2;
+  try {
+    const r = await fetch(JSONBIN_BASE + '/b/' + BIN_ID, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONBIN_API_KEY
+      },
+      body: JSON.stringify({ datos, nextId })
+    });
+    if (r.ok && !silencioso) toast('☁️ Guardado en la nube');
+  } catch(e) {
+    if (!silencioso) toast('⚠️ Error al guardar en la nube');
+  }
+}
+
+function mostrarCargando(msg) {
+  document.getElementById('loading-overlay').style.display = 'flex';
+  document.getElementById('loading-msg').textContent = msg || 'Cargando datos...';
+}
+function ocultarCargando() {
+  document.getElementById('loading-overlay').style.display = 'none';
+}
+
+function guardarHTML() {
+  guardarEnNube(false);
+}
+
+async function verificarCambiosRecientes() {
+  if (!BIN_ID) return false;
+  try {
+    const r = await fetch(JSONBIN_BASE + '/b/' + BIN_ID + '/latest', {
+      headers: { 'X-Master-Key': JSONBIN_API_KEY }
+    });
+    if (r.ok) {
+      const j = await r.json();
+      const remotos = j.record.datos || [];
+      if (remotos.length !== datos.length) return true;
+    }
+  } catch(e) {}
+  return false;
+}
+function recargarDatos() {
+  mostrarCargando('Recargando datos...');
+  BIN_ID = localStorage.getItem('osprera_bin_id') || BIN_ID;
+  cargarDatos();
+}
+
+function guardarFecha(el) { document.getElementById('print-date').textContent=el.innerText.trim(); toast('📅 Fecha actualizada'); }
+function imprimirPDF() { toast('🖨️ Abriendo impresión…'); setTimeout(()=>window.print(),300); }
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+window.onload = function() {
+  // Poblar select de provincias en modal
+  const sel = document.getElementById('f-provincia');
+  if (sel) {
+    sel.innerHTML = '<option value="">— Seleccionar —</option>';
+    PROVINCIAS.forEach(p => {
+      const o = document.createElement('option');
+      o.value = p;
+      o.textContent = p === 'NACIONALES' ? '⭐ NACIONALES' : p;
+      sel.appendChild(o);
+    });
+  }
+  document.getElementById('kpi-total').classList.add('active');
+  document.getElementById('print-date').textContent = document.getElementById('fecha').innerText.trim();
+  // Cargar datos desde JSONBin
+  mostrarCargando('Cargando datos desde la nube...');
+  cargarDatos();
+};
+</script>
+
+
+
+
+
+</body></html>
